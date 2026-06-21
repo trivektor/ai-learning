@@ -4,8 +4,12 @@ import dotenv from "dotenv";
 import * as cheerio from "cheerio";
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "@langchain/core/messages";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-dotenv.config();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const openai = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -19,14 +23,14 @@ const structured = openai.withStructuredOutput(
   }),
 );
 
-async function fetchWebpageContent(state) {
+export async function fetchWebpageContent(state) {
   const response = await fetch(state.url);
   const html = await response.text();
 
   return { content: cheerio.load(html).text() };
 }
 
-async function summarize(state) {
+export async function summarize(state) {
   const feedbackSection = state.feedback
     ? `\nPrevious attempt feedback — address this:\n${state.feedback}\n`
     : "";
@@ -40,7 +44,7 @@ async function summarize(state) {
   return { summary: response.text };
 }
 
-async function reviewSummary(state) {
+export async function reviewSummary(state) {
   const message = `
   Below is the summary of an article at ${state.url}. Review the summary and provide a score between 0 and 100 and provide feedback.
   ${state.summary}
